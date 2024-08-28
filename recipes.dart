@@ -15,17 +15,13 @@ class _RecipesListState extends State<RecipesList> {
  Future<List<RecipeModel>>getAllRecipes() async{
     List<RecipeModel>recipes = [];
     final result= await apiService.getAllRecipes();
-    for(var item in result['recipes']){
+    for(var item in result['results']){
       recipes.add(RecipeModel.fromJson(item));
   }
  return recipes;
  }
- @override
- void initState(){
-   super.initState();
-   getAllRecipes();
- }
-  static var length;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +68,21 @@ Navigator.push
         RecipeModel recipeModel=snapshot.data![index];
       return Padding(
         padding: const EdgeInsets.all(12),
-        child: Image.network('https://api.spoonacular.com/recipes/complexSearch'),
+        child:Column(
+        children: [
+                ClipRRect(borderRadius: BorderRadius.circular(15),child: Image.network
+                  (recipeModel.image),
+                )
+                ,SizedBox(
+                  height: 15,
+                )
+               , Expanded(child: Text(recipeModel.title,overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13),
+                ),)
+              ],
+            )
 
       );
       }
@@ -104,3 +114,4 @@ Navigator.push
 
   }
 }
+
