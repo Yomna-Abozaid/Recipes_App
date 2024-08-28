@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:untitled32/recipes.dart';
+import 'package:untitled32/recipes_model.dart';
+import 'package:untitled32/services/api_servise.dart';
 
 class  FavList extends StatefulWidget {
   const   FavList({super.key});
@@ -9,6 +11,15 @@ class  FavList extends StatefulWidget {
 }
 
 class _FavList extends State< FavList> {
+  ApiService apiService= ApiService();
+  Future<List<RecipeModel>>getAllRecipes() async{
+    List<RecipeModel>recipes = [];
+    final result= await apiService.getAllRecipes();
+    for(var item in result['results']){
+      recipes.add(RecipeModel.fromJson(item));
+    }
+    return recipes;
+  }
   static var length;
   @override
   Widget build(BuildContext context) {
@@ -46,22 +57,78 @@ class _FavList extends State< FavList> {
           ],
         )
         ,body:
-   Container(
-     padding: EdgeInsets.all(10),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,crossAxisSpacing: 10,mainAxisSpacing: 1,
-          ),
-          itemCount: _FavList.length
-          ,itemBuilder: ( context, index) {
-          return Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20)
+    FutureBuilder<List<RecipeModel>>(
+        future: getAllRecipes(),
+        builder: (context,snapshot){
+          if (snapshot.hasData){
+            if(snapshot.data!.isNotEmpty){
 
-            ),
-          );
-        },
-        )
-    ),
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GridView.builder(gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,crossAxisSpacing: 10,mainAxisSpacing: 1,
+
+                      ),
+
+                      itemBuilder:( context, index) {
+                    RecipeModel recipeModel=snapshot.data![index];
+                    return Padding(
+                      padding: const EdgeInsets.all(12),
+                      child:Column(
+                        children: [
+                          Stack(
+                            children: [
+                              ClipRRect(borderRadius: BorderRadius.circular(15),child: Image.network
+                                (recipeModel.image),
+                              ),Positioned(right: 10,top: 10,child: Container(
+                                width: 30,height: 30,decoration: BoxDecoration(
+                                shape: BoxShape.circle,color: Colors.white.withOpacity(0.50),
+                              ),child: IconButton(padding: EdgeInsets.zero,icon: const Icon(Icons.favorite,color: Colors.redAccent,),
+                              onPressed: (){},),
+                              ),)
+                            ],
+                          )
+                          ,const SizedBox(
+                            height: 14 ,
+                          )
+                          ,Expanded(child: Text(recipeModel.title,overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16),
+                        ),
+
+                          )
+                        ],
+                      ),
+
+                        );
+
+                  }
+                  ,itemCount: snapshot.data!.length,
+                ),
+
+              );
+
+
+            }
+            else{
+              return const Center(
+                child: Text('recipes is empty',style: TextStyle(color: Colors.black),),
+              );
+            }
+          }else if(snapshot.hasError){
+            return Center(
+              child: Text(snapshot.error.toString(),style: TextStyle(color: Colors.black)),
+            );
+          }
+          else{
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.black,
+              ),
+            );
+          }
+        }
+    )
      );
   }}
